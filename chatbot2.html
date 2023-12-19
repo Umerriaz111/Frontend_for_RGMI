@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
+
+        #app {
+            max-width: 400px;
+            margin: 70px auto;
+            position: relative;
+        }
+
+        .colorPanel {
+            position: absolute;
+            margin: 0 auto;
+            left: 0;
+            right: 0;
+            height: 200px;
+            width: 200px;
+            z-index: 3;
+            background: white;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            border-radius: 15px;
+            box-shadow: 0 0 30px #aaa;
+            transition: all 0.12s;
+            display: none;
+            opacity: 0;
+        }
+
+        .colorPanel__colorSlot {
+            box-sizing: border-box;
+            width: 33%;
+            height: 33%;
+            padding: 10px;
+        }
+
+        .colorPanel__color {
+            height: 100%;
+            width: 100%;
+            border-radius: 100px;
+            cursor: pointer;
+            background: #eee;
+            transition-duration: 0.12s;
+        }
+
+        .colorPanel__color:hover {
+            opacity: 0.7;
+        }
+
+        .chatbox {
+            display: block;
+            position: relative;
+            max-width: 400px;
+            margin: 70px auto;
+            padding: 10px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 0 30px #eee;
+            font-size: 17px;
+        }
+
+        .chatbox__header {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: nowrap;
+            font-weight: 900;
+            padding: 10px 0;
+            width: 100%;
+            text-align: center;
+            cursor: default;
+            justify-content: space-between;
+            border-bottom: 2px solid #f5f5f5;
+        }
+
+        .chatbox__headerText {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding-left: 20px;
+        }
+
+        .chatbox__onlineDot {
+            display: block;
+            background: #00C853;
+            height: 10px;
+            width: 10px;
+            border-radius: 10px;
+            margin-left: 5px;
+            animation-name: blinking;
+            animation-duration: 1.5s;
+            animation-iteration-count: infinite;
+        }
+
+        .chatbox__tooltip {
+            opacity: 0;
+            z-index: 2;
+            width: auto;
+            font-size: 12px;
+            text-align: center;
+            padding: 3px 10px;
+            cursor: default;
+            position: absolute;
+            color: white;
+            box-sizing: border-box;
+            border-radius: 15px;
+            background: #111;
+            transition: all 0.14s;
+        }
+
+        .chatbox__tooltip--bottom {
+            top: 115%;
+            margin-left: 110px;
+            opacity: 0.2;
+        }
+
+        .chatbox__tooltip--left {
+            right: calc(100% + 5px);
+            margin-left: 5px;
+            top: 5px;
+        }
+
+        .chatbox__messages {
+            width: 100%;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+
+        .chatbox__messageBox {
+            width: 100%;
+            margin-top: 5px;
+            position: relative;
+            text-align: right;
+        }
+
+        .chatbox__userMessage {
+            position: relative;
+            display: inline-block;
+            padding: 5px 20px;
+            border-radius: 15px;
+            cursor: default;
+            background: #f1f1f1;
+            transition: all 0.12s;
+        }
+
+        .chatbox__userMessage:hover {
+            opacity: 0.7;
+        }
+
+        .chatbox__modelMessage {
+            position: relative;
+            display: inline-block;
+            padding: 5px 20px;
+            border-radius: 15px;
+            cursor: default;
+            background: #4f667a; /* Model reply background color */
+            color: white; /* Model reply text color */
+            text-align: left;
+            transition: all 0.12s;
+        }
+
+        .chatbox__modelMessage:hover {
+            opacity: 0.7;
+        }
+
+        .chatbox__inputPanel {
+            width: 100%;
+            position: relative;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chatbox__input {
+            font-family: 'Roboto';
+            font-size: 1em;
+            width: 100%;
+            border: none;
+            background: #f3f3f3;
+            margin: 0 10px;
+            padding: 5px 15px;
+            color: #444;
+            border-radius: 15px;
+            box-sizing: border-box;
+        }
+
+        .chatbox__button {
+            display: inline-block;
+            height: 20px;
+            width: 22px;
+            color: white;
+            border-radius: 15px;
+            background: #0084ff;
+            cursor: pointer;
+            font-weight: 900;
+            transition-duration: 0.1s;
+        }
+        .chatbox__fileInput {
+            display: none;
+        }
+
+        .chatbox__uploadedImage {
+            max-width: 100%;
+            border-radius: 15px;
+            margin-top: 10px;
+        }
+
+        .chatbox__button:hover {
+            opacity: 0.7;
+        }
+
+        @media screen and (max-width: 450px) {
+            .chatbox {
+                box-sizing: border-box;
+                margin: 0;
+                max-width: 100%;
+                width: 100%;
+                border-radius: 0;
+                height: 100%;
+            }
+        }
+
+        @keyframes blinking {
+            0% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.3;
+            }
+            100% {
+                opacity: 1;
+            }
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+</head>
+<body>
+    <div id="app">
+        <div class="colorPanel" v-bind:style="{ display: colorPanelShown ? 'flex' : 'none', opacity: colorPanelShown ? '1' : '0' }">
+            <div class="colorPanel__colorSlot" v-for="color in colors">
+                <div class="colorPanel__color" v-bind:style="{ background: color }" @click="setColor(color)"></div>
+            </div>
+        </div>
+
+        <div class="chatbox">
+            <div class="chatbox__header">
+                <div class="chatbox__headerText">MED CHAT<span class="chatbox__onlineDot"></span></div>
+                <div class="chatbox__button" v-on:click="colorPanelShown = !colorPanelShown"></div>
+            </div>
+
+            <div class="chatbox__messages">
+                <div v-for="message in messages">
+                    <div v-if="message.type === 'user'" class="chatbox__messageBox">
+                        <div class="chatbox__userMessage" :style="{ background: chatColor }">
+                            {{ message.text }}
+                            <div class="chatbox__tooltip chatbox__tooltip--left">{{ message.date }}</div>
+                        </div>
+                    </div>
+                    <div v-if="message.type === 'model'" class="chatbox__messageBox">
+                        <div class="chatbox__modelMessage">
+                            {{ message.text }}
+                            <div class="chatbox__tooltip chatbox__tooltip--left">{{ message.date }}</div>
+                        </div>
+                    </div>
+                    <div v-if="message.type === 'system'" class="chatbox__messageBox">
+                        <div class="chatbox__systemMessage">
+                            {{ message.text }}
+                            <div class="chatbox__tooltip chatbox__tooltip--left">{{ message.date }}</div>
+                        </div>
+                    </div>
+                    <div v-if="message.type === 'image'" class="chatbox__messageBox" >
+                        <img class="chatbox__uploadedImage" :src="message.image" alt="Uploaded Image" name="Image" action="{{ url_for('upload') }}" method="post" enctype="multipart/form-data">
+                        <div class="chatbox__tooltip chatbox__tooltip--left">{{ message.date }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chatbox__inputPanel">
+                <input class="chatbox__input" v-model="newMessage" @keyup.enter="send" placeholder="Aa">
+                <div class="chatbox__tooltip chatbox__tooltip--bottom" :style="{ opacity: (newMessage.length > 2 && !tutorialSeen) ? 0.7 : 0 }">Press enter to send the message</div>
+                <div class="chatbox__button" @click="showImageUploadDialog">+</div>
+            </div>
+        </div>
+        <input class="chatbox__fileInput" type="file" accept="image/*" @change="handleImageUpload">
+    </div>
+
+    <script>
+        new Vue({
+            el: '#app',
+            data: {
+                chatColor: '#0084ff',
+                colorPanelShown: false,
+                newMessage: '',
+                tutorialSeen: false,
+                colors: ['#0084ff', '#ffc300', '#4af844', '#7646ff', '#a695c7', '#ff5ca1', '#fa3c4c', '#f56b78', '#33343f'],
+                messages: [
+                    { id: 0, text: 'Welcome to Visual Question Answering ChatBot on Medical Images', type: 'system', date: moment().format('hh:mm') },
+                ]
+            },
+            methods: {
+                send: function () {
+                    if (this.newMessage.length > 0) {
+                        // Add user message to the messages array
+                        this.messages.push({
+                            type: 'user',
+                            text: this.newMessage,
+                            date: moment().format('hh:mm')
+                        });
+
+                        // Clear the input field
+                        this.newMessage = '';
+                        this.tutorialSeen = true;
+
+                        // Simulate the model's response (you can replace this with your actual model logic)
+                        this.messages.push({
+                            type: 'model',
+                            text: 'This is the model\'s response to your question.',
+                            date: moment().format('hh:mm')
+                        });
+                    }
+                },
+                setColor: function (color) {
+                    this.chatColor = color;
+                    this.colorPanelShown = false;
+                },
+                showImageUploadDialog: function () {
+                    // Trigger file input
+                    const fileInput = document.querySelector('.chatbox__fileInput');
+                    fileInput.click();
+                },
+                handleImageUpload: function (event) {
+                    const files = event.target.files;
+                    if (files && files.length > 0) {
+                        const imageUrl = URL.createObjectURL(files[0]);
+                        let lastId = this.messages[this.messages.length - 1].id;
+                        this.messages.push({ id: lastId + 1, image: imageUrl, type: 'image', date: moment(). format('hh:mm') });
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
